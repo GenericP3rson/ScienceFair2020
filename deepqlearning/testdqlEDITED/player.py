@@ -15,7 +15,7 @@ class Blob:
         self.x = np.random.randint(0, size)
         self.y = np.random.randint(0, size)
         # print("TRY", self.x, " ", self.y, type(self.x))
-        if player:
+        if player: # Start the player at the inputted door
             self.x, self.y = \
                 np.random.randint(doorx, doorx+1), \
                 np.random.randint(doory, doory+1)
@@ -25,7 +25,7 @@ class Blob:
 
     def __sub__(self, other):
         '''
-        Subtracts the xs and the ys
+        Subtracts the xs and the ys. No longer needed.
         '''
         return (self.x-other.x, self.y-other.y)
 
@@ -54,25 +54,42 @@ class Blob:
             self.move(x=0, y=-1, limits=limits)
         elif choice == 8:
             self.move(x=0, y=0, limits=limits)
+        # Now we'll need to stop the fire.
+        elif choice == 9:
+            return self.x+1, self.y
+        elif choice == 10:
+            return self.x+1, self.y+1
+        elif choice == 11:
+            return self.x, self.y+1
+        elif choice == 9:
+            return self.x-1, self.y
+        elif choice == 10:
+            return self.x-1, self.y-1
+        elif choice == 11:
+            return self.x, self.y-1
+        elif choice == 12:
+            return self.x - 1, self.y+1
+        elif choice == 13:
+            return self.x+1, self.y-1
+        return False, False # So it just moved. It didn't do anything.
 
     def move(self, x=False, y=False, limits = []):
         '''
         This adds either the correct amount or a random amount depending on the parameters.
         '''
-        for i in limits:
-            print(i.x == self.x and i.y == self.y)
-            if i.x == self.x and i.y == self.y:
-                x = 0
-                y = 0
+        addx = 0
+        addy = 0
         # If no value for x, move randomly
-        if not x:
-            self.x += np.random.randint(-1, 2)
+        if not type(x) == int:
+            addx = np.random.randint(-1, 2)
+            self.x += addx
         else:
             self.x += x
 
         # If no value for y, move randomly
-        if not y:
-            self.y += np.random.randint(-1, 2)
+        if not type(y) == int:
+            addy = np.random.randint(-1, 2)
+            self.y += addy
         else:
             self.y += y
 
@@ -86,4 +103,12 @@ class Blob:
         elif self.y > self.size-1:
             self.y = self.size-1
 
-        # TODO: Fix if on person or touching furniture
+        for i in limits: # Make sure it doesn't hit furniture
+            # print(i.x == self.x and i.y == self.y)
+            if i.x == self.x and i.y == self.y:
+                if type(x) == int and type(y) == int:
+                    self.x-=x
+                    self.y-=y 
+                else:
+                    self.x -=addx 
+                    self.y -= addy

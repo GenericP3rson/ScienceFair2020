@@ -157,11 +157,11 @@ class DQNAgent:
             if not done:
                 max_future_q = np.max(future_qs_list[index])
                 new_q = reward + DISCOUNT * max_future_q
-                print("MAXI", max_future_q)
-                print(np.max(future_qs_list[index][:env.ACTION_SPACE_SIZE]), np.max(
-                    future_qs_list[index][env.ACTION_SPACE_SIZE:]))
+                # print("MAXI", max_future_q)
+                # print(np.max(future_qs_list[index][:env.ACTION_SPACE_SIZE]), np.max(
+                #     future_qs_list[index][env.ACTION_SPACE_SIZE:]))
                 new_q = reward + DISCOUNT * (np.max(future_qs_list[index][:env.ACTION_SPACE_SIZE])+ np.max(
-                    future_qs_list[index][env.ACTION_SPACE_SIZE:]))/2 # THIS IS CHANGED!!!
+                    future_qs_list[index][env.ACTION_SPACE_SIZE:])) # THIS IS CHANGED!!!
             else:
                 new_q = reward
 

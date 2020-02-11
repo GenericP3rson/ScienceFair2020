@@ -12,27 +12,32 @@ class BlobEnv:
     MOVE_PENALTY = -1
     ENEMY_PENALTY = -300
     FOOD_REWARD = 25
+    KILL_FIRE_REWARD = 10
+    ALL_FIRES_KILLED = 100
+    RESOURCE_USE_PENALTY = -5
     OBSERVATION_SPACE_VALUES = (SIZE, SIZE, 3)  # 4
-    ACTION_SPACE_SIZE = 9 # The number of moves
+    ACTION_SPACE_SIZE = 14 # The number of moves
     NUM_OF_PLAYERS = 2
     PLAYER_N = 1  # player key in dict
     FOOD_N = 2  # food key in dict
     ENEMY_N = 3  # enemy key in dict
     # the dict! (colors)
-    d = {1: (255, 175, 0),
+    d = {1: (203, 192, 255),
          2: (0, 255, 0),
          3: (0, 0, 255),
-         4: (255/2, 255/2, 255/2)}
+         4: (255/2, 255/2, 255/2),
+         5: (255, 175, 0)}
     people = []
     fires = []
     walls = []
     DOORX = 0
     DOORY = SIZE-1
+    shot = [False]
 
     def check(self, person, arr):
         for i in arr:
             if i == person: 
-                print(i, person, i==person)
+                # print(i, person, i==person)
                 return True
         return False
 
@@ -76,7 +81,20 @@ class BlobEnv:
             observation = (self.player-self.food) + (self.player-self.enemy) # obs is their coordinates
         return observation
     # def move(self):
+    def killFire(self, x = False, y = False):
+        if ((not x and not y) or len(self.fires) == 0 or x < 0 or y < 0 or x >= self.SIZE or y >=self.SIZE):
+            return self.RESOURCE_USE_PENALTY
+        self.shot = [x, y]
+        for i in (self.fires):
+            if x == i.x and y == i.y:
+                self.fires.remove(i)
+                if len(self.fires) == 0: # If all fires now killed, extra reward
+                    return self.ALL_FIRES_KILLED
+                return self.KILL_FIRE_REWARD # Else just a reward for killing the fire
+        return self.RESOURCE_USE_PENALTY
+
     def step(self, action):
+        self.shot = [False]
         self.episode_step += 1 # New step
         for i in self.fires:
             if (np.random.randint(0, 50) == 1):  # 2% chance
@@ -84,9 +102,9 @@ class BlobEnv:
                 self.people.append(new_fire)
                 self.fires.append(new_fire)
                 i.move()
-        self.player.action(action[0], self.walls) # Takes the action (changes the x and y)
-        self.player2.action(action[1], self.walls)
-        # TODO: Make player2 take an action
+        rew1a, rew1b = self.player.action(action[0], self.walls) # Takes the action (changes the x and y)
+        rew2a, rew2b = self.player2.action(action[1], self.walls)
+        # TODO: Generalise actions
         #### MAYBE ###
         # self.enemy.move() # TODO: Make it also take an action
         # self.food.move()
@@ -102,6 +120,8 @@ class BlobEnv:
 
 
         # TODO: Change the reward appropriately.
+        if rew1a and rew1b:
+            reward = self.killFire(rew1a, rew1b)
         if self.player == self.enemy or self.check(self.player, self.fires):
             reward = self.ENEMY_PENALTY
         elif self.player == self.food:
@@ -111,24 +131,26 @@ class BlobEnv:
             reward = self.MOVE_PENALTY
 
         # NOTE: This is the rewards for player2
+        if rew2a and rew2b:
+            reward += self.killFire(rew2a, rew2b)
         if self.player2 == self.enemy or self.check(self.player2, self.fires):
             reward += self.ENEMY_PENALTY
         elif self.player2 == self.food:
             reward += self.FOOD_REWARD
-        # elif
         else:
             reward += self.MOVE_PENALTY
 
+        print("Reward: ", reward)
         done = False
         # TODO: Make it end once the guy exits the door? Or once the person is saved?
-        if reward >= self.FOOD_REWARD-self.MOVE_PENALTY or reward <= self.ENEMY_PENALTY or self.episode_step >= 200:
+        if self.check(self.food, [self.player, self.player2]) or reward <= self.ENEMY_PENALTY or self.episode_step >= 200:
             done = True
             # We'll finish after we lost, won, or it's been too long
         self.render() # Shows images
-        for i in self.people: print(i)
-        print("FIRE: ", self.enemy)
-        print("PERSON: ", self.food)
-        print("MAN: ", self.player)
+        # for i in self.people: print(i)
+        # print("FIRE: ", self.enemy)
+        # print("PERSON: ", self.food)
+        # print("MAN: ", self.player)
         # TODO: Make sure to change this appropriately for 2+ players
         return new_observation, reward, done 
         # We'll return the new board, the reward, and whether we're done or not
@@ -159,6 +181,7 @@ class BlobEnv:
             env[i.x][i.y] = self.d[4]
         for i in self.fires:
             env[i.x][i.y] = self.d[self.ENEMY_N]
+        if self.shot[0]: env[self.shot[0]][self.shot[1]] = self.d[5]
         # sets the player tile to blue
         env[self.player.x][self.player.y] = self.d[self.PLAYER_N]
         env[self.player2.x][self.player2.y] = self.d[self.PLAYER_N]
