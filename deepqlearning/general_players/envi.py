@@ -11,10 +11,10 @@ class BlobEnv:
     RETURN_IMAGES = True # For DQL
     MOVE_PENALTY = -1
     ENEMY_PENALTY = -300
-    FOOD_REWARD = 25
+    FOOD_REWARD = 200
     KILL_FIRE_REWARD = 10
     ALL_FIRES_KILLED = 100
-    RESOURCE_USE_PENALTY = -5
+    RESOURCE_USE_PENALTY = -10
     OBSERVATION_SPACE_VALUES = (SIZE, SIZE, 3)  # 4
     ACTION_SPACE_SIZE = 14 # The number of moves
     PLAYER_N = 1  # player key in dict
@@ -36,10 +36,13 @@ class BlobEnv:
     def __init__(self, num):
         self.NUM_OF_PLAYERS = num
     
-    def check(self, person, arr):
+    def check(self, person, arr, begone = False):
         for i in arr:
             if i == person: 
                 # print(i, person, i==person)
+                # if begone: 
+                #     self.players.remove(i)
+                #     self.people.remove(i)
                 return True
         return False
 
@@ -61,7 +64,7 @@ class BlobEnv:
         return person
 
     def reset(self):
-        self.people = []
+        self.people = [] # All entities; used to make sure nothing collides
         self.walls = []
         self.fires = []
         self.players = []
@@ -70,10 +73,10 @@ class BlobEnv:
         # self.player = self.createNewPlayer(True)
         # self.player2 = self.createNewPlayer(True)
         self.food = self.createNewPlayer()
-        self.enemy = self.createNewPlayer()
-        for i in range(int(self.SIZE/2)):  # Generates Wall
+        # self.enemy = self.createNewPlayer()
+        for i in range(int(self.SIZE/2) + np.random.randint(int(self.SIZE/2))):  # Generates Wall
             self.createNewPlayer(False, "wall")
-        for i in range(int(self.SIZE/2)):  # Generates Fire
+        for i in range(int(self.SIZE/2) + np.random.randint(int(self.SIZE/2))):  # Generates Fire
             self.createNewPlayer(False, "fire")
         # Basically, the code above initialises all the players to a distinct section.
 
@@ -82,8 +85,8 @@ class BlobEnv:
         # Initial observation
         if self.RETURN_IMAGES:
             observation = np.array(self.get_image()) # obs is the image
-        else:
-            observation = (self.player-self.food) + (self.player-self.enemy) # obs is their coordinates
+        # else:
+        #     observation = (self.player-self.food) + (self.player-self.enemy) # obs is their coordinates
         return observation
     # def move(self):
     def killFire(self, x = False, y = False):
@@ -93,6 +96,7 @@ class BlobEnv:
         for i in (self.fires):
             if x == i.x and y == i.y:
                 self.fires.remove(i)
+                self.people.remove(i)
                 if len(self.fires) == 0: # If all fires now killed, extra reward
                     return self.ALL_FIRES_KILLED
                 return self.KILL_FIRE_REWARD # Else just a reward for killing the fire
@@ -118,9 +122,9 @@ class BlobEnv:
         if self.RETURN_IMAGES:
             new_observation = np.array(self.get_image()) 
             # This will make the observation an image
-        else:
-            new_observation = (self.player-self.food) + \
-                (self.player-self.enemy)
+        # else:
+        #     new_observation = (self.player-self.food) + \
+        #         (self.player-self.enemy)
             # This will make the observation part of an array. The indicies will be where we need to go.
 
 
@@ -128,23 +132,27 @@ class BlobEnv:
         reward = 0
         # print("Let's Go", len(self.players), len(action))
         # print("DOES THIS WORK 1")
+        players_to_remove = []
         for i in range(len(self.players)): 
             reward1, reward2 = self.players[i].action(action[i], self.walls) # Take action
             # print("DOES THIS WORK 2")
             if reward1 and reward2: # If it shoots water
                 reward += self.killFire(reward1, reward2)
-            if self.players[i] == self.enemy or self.check(self.players[i], self.fires):
+            if self.check(self.players[i], self.fires, True):
                 reward += self.ENEMY_PENALTY # Checks if it is touching fire
+                players_to_remove.append(i)
                 # TODO: Kill the player
             elif self.players[i] == self.food:
                 reward += self.FOOD_REWARD # If it has found child
             else:
                 reward += self.MOVE_PENALTY # Else, just move
         # print("DOES THIS WORK 3")actions = convert_num_to_action_array(unique_action_index)
+        for i in players_to_remove[::-1]:
+            self.players.pop(i)
         print("Reward: ", reward)
         done = False
         # TODO: Make it end once the guy exits the door? Or once the person is saved?
-        if self.check(self.food, self.players) or reward <= self.ENEMY_PENALTY or self.episode_step >= 200:
+        if self.check(self.food, self.players) or len(self.players) == 0 or self.episode_step >= 500:
             done = True
             # We'll finish after we lost, won, or it's been too long
         self.render() # Shows images
@@ -177,7 +185,7 @@ class BlobEnv:
         # sets the food location tile to green color
         env[self.food.x][self.food.y] = self.d[self.FOOD_N]
         # sets the enemy location to red
-        env[self.enemy.x][self.enemy.y] = self.d[self.ENEMY_N]
+        # env[self.enemy.x][self.enemy.y] = self.d[self.ENEMY_N]
         for i in self.walls:
             env[i.x][i.y] = self.d[4]
         for i in self.fires:
