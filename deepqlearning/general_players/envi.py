@@ -149,7 +149,7 @@ class BlobEnv:
         # print("DOES THIS WORK 3")actions = convert_num_to_action_array(unique_action_index)
         for i in players_to_remove[::-1]:
             self.players.pop(i)
-        print("Reward: ", reward)
+        # print("Reward: ", reward)
         done = False
         # TODO: Make it end once the guy exits the door? Or once the person is saved?
         if self.check(self.food, self.players) or len(self.players) == 0 or self.episode_step >= 500:

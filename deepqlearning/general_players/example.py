@@ -261,7 +261,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
             # TODO: Change to getting two actions
             current_qs = agent.get_qs(current_state)
             unique_action_index = np.argmax(current_qs) # Getting the max value of action combinations
-            print(unique_action_index)
+            # print(unique_action_index)
             actions = convert_num_to_action_array(unique_action_index)
             # for i in range(env.ACTION_SPACE_SIZE, len(current_qs)+1, env.ACTION_SPACE_SIZE):
             #     actions.append(np.argmax(current_qs[i-env.ACTION_SPACE_SIZE:i]))
