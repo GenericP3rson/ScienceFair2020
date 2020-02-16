@@ -16,7 +16,7 @@ import mtf
 import envi
 import player
 
-NUM_OF_PLAYERS = 2
+NUM_OF_PLAYERS = 3
 
 DISCOUNT = 0.99
 REPLAY_MEMORY_SIZE = 50_000  # How many last steps to keep for model training
@@ -29,7 +29,7 @@ MIN_REWARD = -200  # For model save
 MEMORY_FRACTION = 0.20
 
 # Environment settings
-EPISODES = 10_000 # Number of iterations
+EPISODES = 1_000 # Number of iterations
 
 # Exploration settings
 epsilon = 1  # not a constant, going to be decayed
@@ -79,7 +79,7 @@ class DQNAgent:
 
         # Custom tensorboard object
         self.tensorboard = mtf.ModifiedTensorBoard(
-            log_dir="logs/{}-{}".format(MODEL_NAME, int(time.time())))
+            log_dir="logs/{}_players/{}-{}".format(NUM_OF_PLAYERS, MODEL_NAME, int(time.time())))
 
         # Used to count when to update target network with main network's weights
         self.target_update_counter = 0
@@ -287,8 +287,8 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         # Transform new continous state to new discrete state and count reward
         episode_reward += reward
 
-        if SHOW_PREVIEW and not episode % AGGREGATE_STATS_EVERY:
-            env.render()
+        # if SHOW_PREVIEW and not episode % AGGREGATE_STATS_EVERY:
+        #     env.render()
 
         # Every step we update replay memory and train main network
         agent.update_replay_memory(
