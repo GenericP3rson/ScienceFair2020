@@ -16,7 +16,7 @@ import mtf
 import envi
 import player
 
-NUM_OF_PLAYERS = 5
+NUM_OF_PLAYERS = 1
 
 DISCOUNT = 0.99
 REPLAY_MEMORY_SIZE = 50_000  # How many last steps to keep for model training
@@ -29,7 +29,7 @@ MIN_REWARD = -200  # For model save
 MEMORY_FRACTION = 0.20
 
 # Environment settings
-EPISODES = 25 # Number of iterations
+EPISODES = 1_000 # Number of iterations
 
 # Exploration settings
 epsilon = 1  # not a constant, going to be decayed
@@ -37,9 +37,10 @@ EPSILON_DECAY = 0.99975
 MIN_EPSILON = 0.001
 
 #  Stats settings
-AGGREGATE_STATS_EVERY = 50  # episodes
+AGGREGATE_STATS_EVERY = 10  # episodes
 SHOW_PREVIEW = False
 
+past_min_reward = -10000
 
 env = envi.BlobEnv(NUM_OF_PLAYERS)
 
@@ -78,7 +79,7 @@ class DQNAgent:
 
         # Custom tensorboard object
         self.tensorboard = mtf.ModifiedTensorBoard(
-            log_dir="logs/{}-{}".format(MODEL_NAME, int(time.time())))
+            log_dir="logs/{}_players/{}-{}".format(NUM_OF_PLAYERS, MODEL_NAME, int(time.time())))
 
         # Used to count when to update target network with main network's weights
         self.target_update_counter = 0
@@ -260,7 +261,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
             # TODO: Change to getting two actions
             current_qs = agent.get_qs(current_state)
             unique_action_index = np.argmax(current_qs) # Getting the max value of action combinations
-            print(unique_action_index)
+            # print(unique_action_index)
             actions = convert_num_to_action_array(unique_action_index)
             # for i in range(env.ACTION_SPACE_SIZE, len(current_qs)+1, env.ACTION_SPACE_SIZE):
             #     actions.append(np.argmax(current_qs[i-env.ACTION_SPACE_SIZE:i]))
@@ -286,8 +287,8 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         # Transform new continous state to new discrete state and count reward
         episode_reward += reward
 
-        if SHOW_PREVIEW and not episode % AGGREGATE_STATS_EVERY:
-            env.render()
+        # if SHOW_PREVIEW and not episode % AGGREGATE_STATS_EVERY:
+        #     env.render()
 
         # Every step we update replay memory and train main network
         agent.update_replay_memory(
@@ -299,7 +300,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
     # Append episode reward to a list and log stats (every given number of episodes)
     ep_rewards.append(episode_reward)
-    if not episode % AGGREGATE_STATS_EVERY or episode == 1:
+    if step >= AGGREGATE_STATS_EVERY and not episode % AGGREGATE_STATS_EVERY or episode == 1:
         average_reward = sum(
             ep_rewards[-AGGREGATE_STATS_EVERY:])/len(ep_rewards[-AGGREGATE_STATS_EVERY:])
         min_reward = min(ep_rewards[-AGGREGATE_STATS_EVERY:])
@@ -308,11 +309,14 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
             reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon)
 
         # Save model, but only when min reward is greater or equal a set value
-        if min_reward >= MIN_REWARD:
+        if step >= AGGREGATE_STATS_EVERY and min_reward >= past_min_reward:
+            past_min_reward = min_reward
             agent.model.save(
-                f'models/{MODEL_NAME}__{env.SIZE}__{NUM_OF_PLAYERS}players__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')
+                f'models/{NUM_OF_PLAYERS}_players/{min_reward}/{MODEL_NAME}__{env.SIZE}__{NUM_OF_PLAYERS}players__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')
 
     # Decay epsilon
     if epsilon > MIN_EPSILON:
         epsilon *= EPSILON_DECAY
         epsilon = max(MIN_EPSILON, epsilon)
+agent.model.save(
+    f'models/{NUM_OF_PLAYERS}_players/{NUM_OF_PLAYERS}_FINAL_MODEL__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')

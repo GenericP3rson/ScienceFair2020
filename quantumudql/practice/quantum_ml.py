@@ -39,7 +39,7 @@ dev = qml.device("strawberryfields.fock", wires=1, cutoff_dim=10)
 # Quantum node
 # ~~~~~~~~~~~~
 #
-# For a single quantum mode, each layer of the variational circuit is
+# For a single quantum node, each layer of the variational circuit is
 # defined as:
 
 
@@ -84,10 +84,10 @@ def quantum_neural_net(var, x=None):
 
 def square_loss(labels, predictions):
     loss = 0
-    for l, p in zip(labels, predictions):
-        loss = loss + (l - p) ** 2
+    for actual, predicted in zip(labels, predictions):
+        loss += (actual - predicted) ** 2
 
-    loss = loss / len(labels)
+    loss /= len(labels)
     return loss
 
 
@@ -99,8 +99,9 @@ def square_loss(labels, predictions):
 
 
 def cost(var, features, labels):
-    preds = [quantum_neural_net(var, x=x) for x in features]
-    return square_loss(labels, preds)
+    print(var)
+    preds = [quantum_neural_net(var, x=x) for x in features] # Comes with the predictions
+    return square_loss(labels, preds) # Calculates the loss
 
 
 ##############################################################################
@@ -108,6 +109,9 @@ def cost(var, features, labels):
 #
 # We load noisy data samples of a sine function.
 
+'''
+DEFINES THE DATA
+'''
 data = np.loadtxt("sine.txt")
 X = data[:, 0]
 Y = data[:, 1]
@@ -133,24 +137,16 @@ plt.show()
 # The network’s weights (called ``var`` here) are initialized with values
 # sampled from a normal distribution. We use 4 layers; performance has
 # been found to plateau at around 6 layers.
-
+'''
+Initialise the weights
+'''
 np.random.seed(0)
 num_layers = 4
-var_init = 0.05 * np.random.randn(num_layers, 5)
+var_init = 0.05 * np.random.randn(num_layers, 5) # initialise network weights at a Normal Distribution
+# four by five layer network
 print(var_init)
 
 ##############################################################################
-# .. rst-class:: sphx-glr-script-out
-#
-#  Out:
-#
-#  .. code-block:: none
-#
-#    array([[ 0.08820262,  0.02000786,  0.0489369 ,  0.11204466,  0.0933779 ],
-#           [-0.04886389,  0.04750442, -0.00756786, -0.00516094,  0.02052993],
-#           [ 0.00720218,  0.07271368,  0.03805189,  0.00608375,  0.02219316],
-#           [ 0.01668372,  0.07470395, -0.01025791,  0.01565339, -0.04270479]])
-#
 # Using the Adam optimizer, we update the weights for 500 steps (this
 # takes some time). More steps will lead to a better fit.
 
