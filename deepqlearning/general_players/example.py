@@ -37,7 +37,7 @@ EPSILON_DECAY = 0.99975
 MIN_EPSILON = 0.001
 
 #  Stats settings
-AGGREGATE_STATS_EVERY = 50  # episodes
+AGGREGATE_STATS_EVERY = 10  # episodes
 SHOW_PREVIEW = False
 
 past_min_reward = -10000
@@ -300,7 +300,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
     # Append episode reward to a list and log stats (every given number of episodes)
     ep_rewards.append(episode_reward)
-    if not episode % AGGREGATE_STATS_EVERY or episode == 1:
+    if step >= AGGREGATE_STATS_EVERY and not episode % AGGREGATE_STATS_EVERY or episode == 1:
         average_reward = sum(
             ep_rewards[-AGGREGATE_STATS_EVERY:])/len(ep_rewards[-AGGREGATE_STATS_EVERY:])
         min_reward = min(ep_rewards[-AGGREGATE_STATS_EVERY:])
@@ -309,7 +309,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
             reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon)
 
         # Save model, but only when min reward is greater or equal a set value
-        if min_reward >= past_min_reward:
+        if step >= AGGREGATE_STATS_EVERY and min_reward >= past_min_reward:
             past_min_reward = min_reward
             agent.model.save(
                 f'models/{NUM_OF_PLAYERS}_players/{min_reward}/{MODEL_NAME}__{env.SIZE}__{NUM_OF_PLAYERS}players__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')
