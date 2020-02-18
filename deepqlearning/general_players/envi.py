@@ -16,7 +16,7 @@ class BlobEnv:
     ALL_FIRES_KILLED = 100
     RESOURCE_USE_PENALTY = -10
     OBSERVATION_SPACE_VALUES = (SIZE, SIZE, 3)  # 4
-    ACTION_SPACE_SIZE = 14 # The number of moves
+    ACTION_SPACE_SIZE = 17 # The number of moves
     PLAYER_N = 1  # player key in dict
     FOOD_N = 2  # food key in dict
     ENEMY_N = 3  # enemy key in dict
@@ -155,7 +155,7 @@ class BlobEnv:
         if self.check(self.food, self.players) or len(self.players) == 0 or self.episode_step >= 500:
             done = True
             # We'll finish after we lost, won, or it's been too long
-        # self.render() # Shows images
+        self.render() # Shows images
         # for i in self.people: print(i)
         # print("FIRE: ", self.enemy)
         # print("PERSON: ", self.food)

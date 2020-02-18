@@ -61,15 +61,15 @@ class Blob:
             return self.x+1, self.y+1
         elif choice == 11:
             return self.x, self.y+1
-        elif choice == 9:
-            return self.x-1, self.y
-        elif choice == 10:
-            return self.x-1, self.y-1
-        elif choice == 11:
-            return self.x, self.y-1
         elif choice == 12:
-            return self.x - 1, self.y+1
+            return self.x-1, self.y
         elif choice == 13:
+            return self.x-1, self.y-1
+        elif choice == 14:
+            return self.x, self.y-1
+        elif choice == 15:
+            return self.x - 1, self.y+1
+        elif choice == 16:
             return self.x+1, self.y-1
         return False, False # So it just moved. It didn't do anything.
 

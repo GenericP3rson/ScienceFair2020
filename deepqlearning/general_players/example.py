@@ -16,7 +16,7 @@ import mtf
 import envi
 import player
 
-NUM_OF_PLAYERS = 3
+NUM_OF_PLAYERS = 2
 
 DISCOUNT = 0.99
 REPLAY_MEMORY_SIZE = 50_000  # How many last steps to keep for model training
@@ -312,11 +312,11 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         if step >= AGGREGATE_STATS_EVERY and min_reward >= past_min_reward:
             past_min_reward = min_reward
             agent.model.save(
-                f'models/{NUM_OF_PLAYERS}_players/{min_reward}/{MODEL_NAME}__{env.SIZE}__{NUM_OF_PLAYERS}players__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')
+                f'models/{NUM_OF_PLAYERS}_players/{min_reward}/{MODEL_NAME}__{env.SIZE}__{NUM_OF_PLAYERS}players__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}_updated.model')
 
     # Decay epsilon
     if epsilon > MIN_EPSILON:
         epsilon *= EPSILON_DECAY
         epsilon = max(MIN_EPSILON, epsilon)
 agent.model.save(
-    f'models/{NUM_OF_PLAYERS}_players/{NUM_OF_PLAYERS}_FINAL_MODEL__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')
+    f'models/{NUM_OF_PLAYERS}_players/{NUM_OF_PLAYERS}_FINAL_MODEL__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}_updated.model')
