@@ -26,6 +26,7 @@ def qnn():
         qml.Rotation(v[2], wires=0)
 
         # Bias
+        print(v[3])
         qml.Displacement(v[3], 0.0, wires=0)
 
         # Element-wise nonlinear transformation
@@ -44,10 +45,11 @@ def qnn():
         return qml.expval(qml.X(0))
 
     def square_loss(labels, predictions):
+        print(len(labels))
         loss = 0
         for actual, predicted in zip(labels, predictions):
             loss += (actual - predicted) ** 2
-
+            print(loss)
         loss /= len(labels)
         return loss
 

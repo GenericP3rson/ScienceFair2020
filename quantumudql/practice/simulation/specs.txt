@@ -1,0 +1,7 @@
+For now, the drone can only see its direct surroundings (one unit around it)
+Later, it'll be able to look at the clear air around it
+    Maybe for the future add smoke?
+Options: 
+    - Move forward, backwards, left, right, etc.
+    - Fire water
+    - Pick up

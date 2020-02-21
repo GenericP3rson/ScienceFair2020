@@ -6,6 +6,7 @@ data = np.loadtxt("sine.txt")
 inp = data[:, 0]
 out = data[:, 1]
 
+print(inp.shape)
 qnn1 = qnn.qnn()
 qnn1["init"](5)
 weights = qnn1["train"](inp, out, 2)

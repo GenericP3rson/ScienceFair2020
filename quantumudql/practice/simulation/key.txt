@@ -1,0 +1,5 @@
+* = air
+U = stairs that ascend
+D = stairs that descend
+| = wall
+- = wall
